@@ -1,7 +1,7 @@
 // const express = require("express");
 // const app = express();
 // const router = require("./router"); 
-import express from "express";
+import {express} from "express";
 import {router} from "./router.js";
 
 const app = express();

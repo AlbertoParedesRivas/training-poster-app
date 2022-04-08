@@ -1,5 +1,4 @@
 import {User} from "../models/User.js";
-// const User = require("../models/User");
 
 let login = function () {
     

@@ -3,13 +3,11 @@ import { MongoClient } from "mongodb";
 class MongoBot{
     constructor(){
         this.url = "mongodb://root:example@localhost:27017/";
+        this.client = new MongoClient(this.url);
     }
-    connect(callback){
-        let self = this;
-        MongoClient.connect(this.url, function (err, client) {
-            self.db = client.db("training-poster");
-            return callback(err);
-        });
+    async connect(){
+        await this.client.connect();
+        this.db = this.client.db("training-poster");
     }
     getDb(){
         return this.db;

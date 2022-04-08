@@ -1,16 +1,11 @@
-// const express = require("express");
-// const app = express();
-// const router = require("./router"); 
 import express from "express";
 import { dbModule } from "./db.js";
 import {router} from "./router.js";
 
 export const app = express();
 
-dbModule.connect(function (err, client) {
-    if (err) {
-        console.log(err);
-    }
+async function start() {
+    await dbModule.connect();
     // Configuring request object to include user submited data
     app.use(express.urlencoded({extended: false}));
     app.use(express.json());
@@ -21,4 +16,5 @@ dbModule.connect(function (err, client) {
     // Setting up router
     app.use("/", router);
     app.listen(3000);
-});
+}
+start();

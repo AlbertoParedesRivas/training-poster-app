@@ -4,44 +4,42 @@ import { dbModule } from "../db.js";
 
 export class User{
     constructor(data){
-        this.username = data.username.trim().toLowerCase();
-        this.email = data.email.trim().toLowerCase();
-        this.password = data.password;
+        this.usersCollection = dbModule.getDb().collection("users");
+        this.data = data;
         this.errors = [];
     }
     
     register(){
-        let usersCollection = dbModule.getDb().collection("users");
         this.cleanUp();
         this.validate();
         if(!this.errors.length){
-            usersCollection.insertOne(this);
+            this.usersCollection.insertOne(this.data);
         }
     }
 
     validate(){
-        if(this.username == ""){
+        if(this.data.username == ""){
             this.errors.push("You must provide an username.");
         }
-        if (this.username != "" && !validator.isAlphanumeric(this.username)) {
+        if (this.data.username != "" && !validator.isAlphanumeric(this.data.username)) {
             this.errors.push("Username can only contain letter and numbers.");
         }
-        if(!validator.isEmail(this.email)){
+        if(!validator.isEmail(this.data.email)){
             this.errors.push("You must provide an email.");
         }
-        if(this.password == ""){
+        if(this.data.password == ""){
             this.errors.push("You must provide a password.");
         }
-        if(this.password.length > 0 && this.password.length < 12){
+        if(this.data.password.length > 0 && this.data.password.length < 12){
             this.errors.push("Password must be at least 12 characters.");
         }
-        if(this.password.length > 200){
+        if(this.data.password.length > 200){
             this.errors.push("Password cannot exceed 200 characters.");
         }
-        if(this.username.length > 0 && this.username.length < 12){
+        if(this.data.username.length > 0 && this.data.username.length < 12){
             this.errors.push("Username must be at least 12 characters.");
         }
-        if(this.username.length > 200){
+        if(this.data.username.length > 200){
             this.errors.push("Username cannot exceed 200 characters.");
         }
     }
@@ -55,6 +53,11 @@ export class User{
         }
         if(typeof(this.password) != "string"){
             this.password = "";
+        }
+        this.data = {
+            username: this.data.username,
+            email: this.data.email,
+            password: this.data.password
         }
     }
 }

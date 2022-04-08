@@ -11,10 +11,9 @@ export class User{
     }
     
     register(){
-        usersCollection = dbModule.collections("users");
+        let usersCollection = dbModule.getDb().collection("users");
         this.cleanUp();
         this.validate();
-        
         if(!this.errors.length){
             usersCollection.insertOne(this);
         }

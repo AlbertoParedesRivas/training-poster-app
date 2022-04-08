@@ -12,10 +12,10 @@ let logout = function () {
 let register = function (request, response) {
     let user = new User(request.body);
     user.register();
-    if (user.errors.length) {
-        
+    if (!user.errors.length) {
+        response.send("Registration complete");
     }else{
-
+        response.send(user.errors);
     }
     console.log(user);
 };

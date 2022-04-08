@@ -1,14 +1,21 @@
 import { MongoClient } from "mongodb";
-import { app } from "./app.js";
 
-const client = new MongoClient('mongodb://root:example@localhost:27017/');
-let dbModule;
-
-async function start() {
-    await client.connect();
-    dbModule = await client.db("training-poster");
-    app.listen(3000);
+class MongoBot{
+    constructor(){
+        this.url = "mongodb://root:example@localhost:27017/";
+    }
+    connect(callback){
+        let self = this;
+        MongoClient.connect(this.url, function (err, client) {
+            self.db = client.db("training-poster");
+            return callback(err);
+        });
+    }
+    getDb(){
+        return this.db;
+    }
 }
 
-export {dbModule};
-start();
+let dbModule = new MongoBot();
+
+export { dbModule };

@@ -1,4 +1,6 @@
-import {validator} from validator
+import validator from "validator"
+import { dbModule } from "../db.js";
+
 
 export class User{
     constructor(data){
@@ -7,10 +9,15 @@ export class User{
         this.password = data.password;
         this.errors = [];
     }
-
+    
     register(){
+        usersCollection = dbModule.collections("users");
         this.cleanUp();
         this.validate();
+        
+        if(!this.errors.length){
+            usersCollection.insertOne(this);
+        }
     }
 
     validate(){

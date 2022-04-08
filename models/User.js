@@ -1,5 +1,5 @@
 import validator from "validator"
-import { dbModule } from "../db.js";
+import { dbModule } from "../mongo.js";
 
 
 export class User{

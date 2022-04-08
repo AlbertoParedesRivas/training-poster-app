@@ -16,7 +16,6 @@ let register = function (request, response) {
     }else{
         response.send(user.errors);
     }
-    console.log(user);
 };
 
 let home = function (request, response) {

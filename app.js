@@ -1,5 +1,5 @@
 import express from "express";
-import { dbModule } from "./db.js";
+import { dbModule } from "./mongo.js";
 import {router} from "./router.js";
 
 export const app = express();
@@ -15,6 +15,6 @@ async function start() {
     app.set("view engine", "ejs");
     // Setting up router
     app.use("/", router);
-    app.listen(3000);
+    app.listen(process.env.PORT);
 }
 start();

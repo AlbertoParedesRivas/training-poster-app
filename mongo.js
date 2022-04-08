@@ -1,8 +1,11 @@
 import { MongoClient } from "mongodb";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 class MongoBot{
     constructor(){
-        this.url = "mongodb://root:example@localhost:27017/";
+        this.url = process.env.CONNECTION_STRING;
         this.client = new MongoClient(this.url);
     }
     async connect(){

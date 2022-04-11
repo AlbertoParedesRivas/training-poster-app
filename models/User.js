@@ -17,6 +17,21 @@ export class User{
         }
     }
 
+    login(){
+        return new Promise((resolve, reject) => {
+            this.cleanUp();
+            this.usersCollection.findOne({username: this.data.username}).then((attempedUser) => {
+                if (attempedUser && attempedUser.password == this.data.password) {
+                    resolve("Login success");
+                } else {
+                    reject("Login fail");
+                }
+            }).catch(function () {
+                reject("Please try again later.");
+            });
+        });
+    }
+
     validate(){
         if(this.data.username == ""){
             this.errors.push("You must provide an username.");

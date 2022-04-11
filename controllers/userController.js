@@ -1,7 +1,12 @@
 import {User} from "../models/User.js";
 
-let login = function () {
-    
+let login = function (request, response) {
+    let user = new User(request.body);
+    user.login().then(function (result) {
+        response.send(result);
+    }).catch(function (e) {
+        response.send(e);
+    });
 };
 
 let logout = function () {

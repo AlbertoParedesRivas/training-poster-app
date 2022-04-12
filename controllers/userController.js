@@ -3,6 +3,7 @@ import {User} from "../models/User.js";
 let login = function (request, response) {
     let user = new User(request.body);
     user.login().then(function (result) {
+        request.session.user = {username: user.data.username};
         response.send(result);
     }).catch(function (e) {
         response.send(e);
@@ -24,7 +25,11 @@ let register = function (request, response) {
 };
 
 let home = function (request, response) {
-    response.render("home-guest");
+    if(request.session.user) {
+        response.render("home-dashboard", {username: request.session.user.username});
+    }else{
+        response.render("home-guest");
+    }
 };
 
 export { login, logout, register, home };

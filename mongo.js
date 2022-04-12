@@ -10,10 +10,13 @@ class MongoBot{
     }
     async connect(){
         await this.client.connect();
-        this.db = this.client.db("training-poster");
+        this.db = this.client.db();
     }
     getDb(){
         return this.db;
+    }
+    getClient(){
+        return this.client;
     }
 }
 

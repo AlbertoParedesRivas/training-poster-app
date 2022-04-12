@@ -1,4 +1,5 @@
 import validator from "validator"
+import bcrypt from "bcryptjs";
 import { dbModule } from "../mongo.js";
 
 
@@ -13,6 +14,9 @@ export class User{
         this.cleanUp();
         this.validate();
         if(!this.errors.length){
+            // hash user password
+            let salt = bcrypt.genSaltSync(10);
+            this.data.password = bcrypt.hashSync(this.data.password, salt);
             this.usersCollection.insertOne(this.data);
         }
     }
@@ -21,7 +25,7 @@ export class User{
         return new Promise((resolve, reject) => {
             this.cleanUp();
             this.usersCollection.findOne({username: this.data.username}).then((attempedUser) => {
-                if (attempedUser && attempedUser.password == this.data.password) {
+                if (attempedUser && bcrypt.compareSync(this.data.password, attempedUser.password)) {
                     resolve("Login success");
                 } else {
                     reject("Login fail");
@@ -48,8 +52,8 @@ export class User{
         if(this.data.password.length > 0 && this.data.password.length < 12){
             this.errors.push("Password must be at least 12 characters.");
         }
-        if(this.data.password.length > 200){
-            this.errors.push("Password cannot exceed 200 characters.");
+        if(this.data.password.length > 50){
+            this.errors.push("Password cannot exceed 50 characters.");
         }
         if(this.data.username.length > 0 && this.data.username.length < 12){
             this.errors.push("Username must be at least 12 characters.");

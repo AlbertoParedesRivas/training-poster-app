@@ -1,6 +1,7 @@
 import express from "express";
 import session from "express-session";
 import MongoStore from "connect-mongo";
+import flash from "connect-flash";
 import { dbModule } from "./mongo.js";
 import {router} from "./router.js";
 
@@ -22,6 +23,7 @@ async function start() {
     app.use(express.urlencoded({extended: false}));
     app.use(express.json());
     
+    app.use(flash());
     app.use(sessionOptions);
     app.use(express.static("public"));
     app.set("views", "views");

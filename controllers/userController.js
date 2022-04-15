@@ -1,6 +1,6 @@
 import {User} from "../models/User.js";
 
-let login = function (request, response) {
+export function login(request, response) {
     let user = new User(request.body);
     user.login().then(function () {
         request.session.user = {username: user.data.username, avatar: user.avatar};
@@ -13,15 +13,15 @@ let login = function (request, response) {
             response.redirect("/");
         });
     });
-};
+}
 
-let logout = function (request, response) {
+export function logout(request, response) {
     request.session.destroy(function () {
         response.redirect("/");
     });
-};
+}
 
-let register = function (request, response) {
+export function register(request, response) {
     let user = new User(request.body);
     user.register().then(() => {
         request.session.user = {username: user.data.username, avatar: user.avatar};
@@ -36,14 +36,23 @@ let register = function (request, response) {
             response.redirect("/");
         });
     });
-};
+}
 
-let home = function (request, response) {
+export function home(request, response) {
     if(request.session.user) {
-        response.render("home-dashboard", {username: request.session.user.username, avatar: request.session.user.avatar});
+        response.render("home-dashboard");
     }else{
         response.render("home-guest", {errors: request.flash("errors"), regErrors: request.flash("regErrors")});
     }
-};
+}
 
-export { login, logout, register, home };
+export function mustBeLoggedIn(request, response, next) {
+    if (request.session.user) {
+        next();
+    } else {
+        request.flash("errors", "You must be logged in to performe this action");
+        request.session.save(function () {
+            response.redirect("/");
+        });
+    }
+}

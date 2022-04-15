@@ -28,6 +28,11 @@ async function start() {
     app.use(express.static("public"));
     app.set("views", "views");
     app.set("view engine", "ejs");
+    // Including the data of the user in the session into the views
+    app.use(function (request, response, next) {
+        response.locals.user = request.session.user;
+        next();
+    });
     // Setting up router
     app.use("/", router);
     app.listen(process.env.PORT);

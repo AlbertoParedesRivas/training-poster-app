@@ -3,7 +3,7 @@ import {User} from "../models/User.js";
 export function login(request, response) {
     let user = new User(request.body);
     user.login().then(function () {
-        request.session.user = {username: user.data.username, avatar: user.avatar};
+        request.session.user = {_id: user.data._id, username: user.data.username, avatar: user.avatar};
         request.session.save(function () {
             response.redirect("/");
         });
@@ -24,7 +24,7 @@ export function logout(request, response) {
 export function register(request, response) {
     let user = new User(request.body);
     user.register().then(() => {
-        request.session.user = {username: user.data.username, avatar: user.avatar};
+        request.session.user = {_id: user.data._id, username: user.data.username, avatar: user.avatar};
         request.session.save(function () {
             response.redirect("/");
         });

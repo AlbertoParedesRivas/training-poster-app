@@ -5,10 +5,16 @@ import md5 from "md5";
 
 
 export class User{
-    constructor(data){
+    constructor(data, getAvatar){
         this.usersCollection = dbModule.getDb().collection("users");
         this.data = data;
         this.errors = [];
+        if (getAvatar == undefined) {
+            this.avatar = false;
+        }
+        if (getAvatar) {
+            this.getAvatar();
+        }
     }
     
     register(){
@@ -33,7 +39,7 @@ export class User{
             this.cleanUp();
             this.usersCollection.findOne({username: this.data.username}).then((attempedUser) => {
                 if (attempedUser && bcrypt.compareSync(this.data.password, attempedUser.password)) {
-                    this.data.email = attempedUser.email;
+                    this.data = attempedUser;
                     this.getAvatar();
                     resolve("Login success");
                 } else {
@@ -91,18 +97,18 @@ export class User{
     }
 
     cleanUp(){
-        if(typeof(this.username) != "string"){
-            this.username = "";
+        if(typeof(this.data.username) != "string"){
+            this.data.username = "";
         }
-        if(typeof(this.email) != "string"){
-            this.email = "";
+        if(typeof(this.data.email) != "string"){
+            this.data.email = "";
         }
-        if(typeof(this.password) != "string"){
-            this.password = "";
+        if(typeof(this.data.password) != "string"){
+            this.data.password = "";
         }
         this.data = {
-            username: this.data.username,
-            email: this.data.email,
+            username: this.data.username.trim().toLowerCase(),
+            email: this.data.email.trim().toLowerCase(),
             password: this.data.password
         }
     }

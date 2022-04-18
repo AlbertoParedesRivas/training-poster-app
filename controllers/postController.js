@@ -18,6 +18,6 @@ export async function viewSingle(request, response) {
         let post = await Post.findPostById(request.params.id);
         response.render("single-post-screen", {post: post});
     } catch (error) {
-        response.send("404");
+        response.render("404");
     }
 }

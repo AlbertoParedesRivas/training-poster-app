@@ -1,5 +1,6 @@
 import { dbModule } from "../mongo.js";
 import { ObjectId } from "mongodb";
+import { User } from "./User.js";
 
 export class Post{
     constructor(data, userId){
@@ -54,9 +55,27 @@ export class Post{
                 reject();
                 return
             }
-            let post = await dbModule.getDb().collection("posts").findOne({_id: new ObjectId(id)});
-            if (post) {
-                resolve(post);
+            let posts = await dbModule.getDb().collection("posts").aggregate([
+                {$match: {_id: new ObjectId(id)}},
+                {$lookup: {from: "users", localField: "author", foreignField: "_id", as: "authorDocument"}},
+                {$project: {
+                    title: 1,
+                    body: 1,
+                    createdDate: 1,
+                    author: {$arrayElemAt: ["$authorDocument", 0]}
+                }}
+            ]).toArray();
+            // clean up author property in each poster
+            posts = posts.map(function (post) {
+                post.author = {
+                    username: post.author.username,
+                    avatar: new User(post.author, true).avatar
+                }
+                return post;
+            });
+            
+            if (posts.length) {
+                resolve(posts[0]);
             } else {
                 reject();
             }

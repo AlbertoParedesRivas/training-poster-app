@@ -116,4 +116,28 @@ export class User{
     getAvatar(){
         this.avatar = `https://gravatar.com/avatar/${md5(this.data.email)}?s=128`;
     }
+
+    static findByUsername(username){
+        return new Promise(function(resolve, reject){
+            if (typeof(username) != "string") {
+                reject();
+                return;
+            }
+            dbModule.getDb().collection("users").findOne({username: username}).then(function (userDocument) {
+                if(userDocument){
+                    userDocument = new User(userDocument, true);
+                    userDocument = {
+                        _id: userDocument.data._id,
+                        username: userDocument.data.username,
+                        avatar: userDocument.avatar
+                    };
+                    resolve(userDocument);
+                }else{
+                    reject();
+                }
+            }).catch(function () {
+                reject();
+            });
+        });
+    }
 }

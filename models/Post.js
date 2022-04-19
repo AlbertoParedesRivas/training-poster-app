@@ -49,14 +49,9 @@ export class Post{
             this.errors.push("You must provide post content");
     }
 
-    static findPostById(id){
+    static postQuery(uniqueOperations){
         return new Promise(async function (resolve, reject) {
-            if(typeof(id) != "string" || !ObjectId.isValid(id)) {
-                reject();
-                return
-            }
-            let posts = await dbModule.getDb().collection("posts").aggregate([
-                {$match: {_id: new ObjectId(id)}},
+            let aggregateOperations = uniqueOperations.concat([
                 {$lookup: {from: "users", localField: "author", foreignField: "_id", as: "authorDocument"}},
                 {$project: {
                     title: 1,
@@ -64,7 +59,8 @@ export class Post{
                     createdDate: 1,
                     author: {$arrayElemAt: ["$authorDocument", 0]}
                 }}
-            ]).toArray();
+            ]);
+            let posts = await dbModule.getDb().collection("posts").aggregate(aggregateOperations).toArray();
             // clean up author property in each poster
             posts = posts.map(function (post) {
                 post.author = {
@@ -73,12 +69,34 @@ export class Post{
                 }
                 return post;
             });
+            resolve(posts);
+        });
+    }
+
+
+    static findPostById(id){
+        return new Promise(async function (resolve, reject) {
+            if(typeof(id) != "string" || !ObjectId.isValid(id)) {
+                reject();
+                return
+            }
             
+            let posts = await Post.postQuery([
+                {$match: {_id: new ObjectId(id)}}
+            ]);
+
             if (posts.length) {
                 resolve(posts[0]);
             } else {
                 reject();
             }
         });
+    }
+
+    static findByAuthorId(authorId){
+        return Post.postQuery([
+            {$match: {author: authorId}},
+            {$sort: {createdDate: -1}}
+        ]);
     }
 }

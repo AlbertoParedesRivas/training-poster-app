@@ -1,4 +1,5 @@
-import {User} from "../models/User.js";
+import { User } from "../models/User.js";
+import { Post } from "../models/Post.js";
 
 export function login(request, response) {
     let user = new User(request.body);
@@ -55,4 +56,28 @@ export function mustBeLoggedIn(request, response, next) {
             response.redirect("/");
         });
     }
+}
+
+export function ifUserExists(request, response, next) {
+    User.findByUsername(request.params.username).then(function (userDocument) {
+        request.profileUser = userDocument
+        next();
+    }).catch(function (e) {
+        response.render("404")
+    });
+}
+
+export function profilePostScreen(request, response) {
+    // Getting post from user
+    Post.findByAuthorId(request.profileUser._id).then(function (posts) {
+        response.render("profile", {
+            posts: posts,
+            profileUsername: request.profileUser.username,
+            profileAvatar: request.profileUser.avatar
+        });
+    }).catch(function () {
+        response.render("404");
+    });
+
+        
 }

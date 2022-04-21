@@ -1,11 +1,13 @@
 import { dbModule } from "../mongo.js";
 import { ObjectId } from "mongodb";
 import { User } from "./User.js";
+import sanitizeHtml from "sanitize-html";
 
 export class Post{
-    constructor(data, userId){
+    constructor(data, userId, requestedPostId){
         this.data = data;
         this.userId = userId;
+        this.requestedPostId = requestedPostId;
         this.errors = [];
         this.postCollection = dbModule.getDb().collection("posts");
         this.cleanUp();
@@ -15,14 +17,41 @@ export class Post{
     create(){
         return new Promise((resolve, reject) => {
             if (!this.errors.length) {
-                this.postCollection.insertOne(this.data).then(() => {
-                    resolve();
+                this.postCollection.insertOne(this.data).then((info) => {
+                    resolve(info.insertedId);
                 }).catch(()=>{
                     this.errors.push("Please try again later");
                     reject(this.errors);
                 });
             } else {
                 reject(this.errors);
+            }
+        });
+    }
+
+    update(){
+        return new Promise(async (resolve, reject) => {
+            try {
+                let post = await Post.findPostById(this.requestedPostId, this.userId);
+                if (post.isVisitorOwner) {
+                    let status = await this.actuallyUpdate();
+                    resolve(status);
+                } else {
+                    reject();
+                }
+            } catch (error) {
+                reject();
+            }
+        });
+    }
+
+    actuallyUpdate(){
+        return new Promise(async (resolve, reject) => {
+            if(!this.errors.length){
+                await this.postCollection.findOneAndUpdate({_id: new ObjectId(this.requestedPostId)}, {$set: {title: this.data.title, body: this.data.body}});
+                resolve("success");
+            }else{
+                resolve("failure")
             }
         });
     }
@@ -35,8 +64,8 @@ export class Post{
             this.data.body = "";
         }
         this.data = {
-            title: this.data.title.trim(),
-            body: this.data.body.trim(),
+            title: sanitizeHtml(this.data.title.trim(), {allowedTags: [], allowedAttributes: {}}),
+            body: sanitizeHtml(this.data.body.trim(), {allowedTags: [], allowedAttributes: {}}),
             createdDate: new Date(),
             author: ObjectId(this.userId)
         }
@@ -49,7 +78,7 @@ export class Post{
             this.errors.push("You must provide post content");
     }
 
-    static postQuery(uniqueOperations){
+    static postQuery(uniqueOperations, visitorId){
         return new Promise(async function (resolve, reject) {
             let aggregateOperations = uniqueOperations.concat([
                 {$lookup: {from: "users", localField: "author", foreignField: "_id", as: "authorDocument"}},
@@ -57,12 +86,14 @@ export class Post{
                     title: 1,
                     body: 1,
                     createdDate: 1,
+                    authorId: "$author",
                     author: {$arrayElemAt: ["$authorDocument", 0]}
                 }}
             ]);
             let posts = await dbModule.getDb().collection("posts").aggregate(aggregateOperations).toArray();
             // clean up author property in each poster
             posts = posts.map(function (post) {
+                post.isVisitorOwner = post.authorId.equals(visitorId);
                 post.author = {
                     username: post.author.username,
                     avatar: new User(post.author, true).avatar
@@ -74,7 +105,7 @@ export class Post{
     }
 
 
-    static findPostById(id){
+    static findPostById(id, visitorId){
         return new Promise(async function (resolve, reject) {
             if(typeof(id) != "string" || !ObjectId.isValid(id)) {
                 reject();
@@ -83,7 +114,7 @@ export class Post{
             
             let posts = await Post.postQuery([
                 {$match: {_id: new ObjectId(id)}}
-            ]);
+            ], visitorId);
 
             if (posts.length) {
                 resolve(posts[0]);

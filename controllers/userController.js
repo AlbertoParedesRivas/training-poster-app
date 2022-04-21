@@ -43,7 +43,7 @@ export function home(request, response) {
     if(request.session.user) {
         response.render("home-dashboard");
     }else{
-        response.render("home-guest", {errors: request.flash("errors"), regErrors: request.flash("regErrors")});
+        response.render("home-guest", {regErrors: request.flash("regErrors")});
     }
 }
 

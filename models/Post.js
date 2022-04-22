@@ -45,6 +45,22 @@ export class Post{
         });
     }
 
+    static delete(postIdToDelete, currentUserId){
+        return new Promise(async (resolve, reject) => {
+            try {
+                let post = await Post.findPostById(postIdToDelete, currentUserId);
+                if (post.isVisitorOwner) {
+                    await dbModule.getDb().collection("posts").deleteOne({_id: new ObjectId(postIdToDelete)});
+                    resolve();
+                }else{
+                    reject();
+                }
+            } catch (error) {
+                reject();
+            }
+        });
+    }
+
     actuallyUpdate(){
         return new Promise(async (resolve, reject) => {
             if(!this.errors.length){

@@ -26,15 +26,15 @@ export async function viewSingle(request, response) {
 
 export async function viewEditScreen(request, response) {
     try {
-        let post = await Post.findPostById(request.params.id);
-        if (post.authorId == request.visitorId) {
-            response.render("edit-post", {post: post});
+        let post = await Post.findPostById(request.params.id, request.visitorId)
+        if (post.isVisitorOwner) {
+            response.render("edit-post", {post: post})
         } else {
-            request.flash("errors", "You dont have permission to perfom that action.");
-            request.session.save(() => response.redirect("/"));
+            request.flash("errors", "You do not have permission to perform that action.")
+            request.session.save(() => response.redirect("/"))
         }
-    } catch (error) {
-        response.render("404");
+    } catch {
+        response.render("404")
     }
 }
 
@@ -59,5 +59,15 @@ export function edit(request, response) {
         request.session.save(function () {
             response.redirect("/");
         });
+    });
+}
+
+export function deletePost(request, response) {
+    Post.delete(request.params.id, request.visitorId).then(() =>{
+        request.flash("success", "Post successfully deleted.");
+        request.session.save(() => response.redirect(`/profile/${request.session.user.username}`));
+    }).catch(() => {
+        request.flash("errors", "You dont have permission to perform that action.");
+        request.session.save(() => response.redirect("/"));
     });
 }

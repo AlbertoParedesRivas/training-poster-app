@@ -1,3 +1,4 @@
+import e from "connect-flash";
 import {Post} from "../models/Post.js";
 
 export function viewCreateScreen(request, response) {
@@ -69,5 +70,13 @@ export function deletePost(request, response) {
     }).catch(() => {
         request.flash("errors", "You dont have permission to perform that action.");
         request.session.save(() => response.redirect("/"));
+    });
+}
+
+export function search(request, response) {
+    Post.search(request.body.searchTerm).then(posts => {
+        response.json(posts);
+    }).catch(e => {
+        response.json([]);
     });
 }

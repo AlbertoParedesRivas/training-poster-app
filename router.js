@@ -17,6 +17,7 @@ router.get("/post/:id", postController.viewSingle);
 router.get("/post/:id/edit",userController.mustBeLoggedIn, postController.viewEditScreen);
 router.post("/post/:id/edit",userController.mustBeLoggedIn, postController.edit);
 router.post("/post/:id/delete",userController.mustBeLoggedIn, postController.deletePost);
+router.post("/search",userController.mustBeLoggedIn, postController.search);
 
 // Profile related routes
 router.get("/profile/:username", userController.ifUserExists, userController.profilePostScreen);

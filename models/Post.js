@@ -94,7 +94,7 @@ export class Post{
             this.errors.push("You must provide post content");
     }
 
-    static postQuery(uniqueOperations, visitorId){
+    static postQuery(uniqueOperations, visitorId, finalOperations = []){
         return new Promise(async function (resolve, reject) {
             let aggregateOperations = uniqueOperations.concat([
                 {$lookup: {from: "users", localField: "author", foreignField: "_id", as: "authorDocument"}},
@@ -105,11 +105,12 @@ export class Post{
                     authorId: "$author",
                     author: {$arrayElemAt: ["$authorDocument", 0]}
                 }}
-            ]);
+            ]).concat(finalOperations);
             let posts = await dbModule.getDb().collection("posts").aggregate(aggregateOperations).toArray();
             // clean up author property in each poster
             posts = posts.map(function (post) {
                 post.isVisitorOwner = post.authorId.equals(visitorId);
+                post.authorId = undefined;
                 post.author = {
                     username: post.author.username,
                     avatar: new User(post.author, true).avatar
@@ -145,5 +146,18 @@ export class Post{
             {$match: {author: authorId}},
             {$sort: {createdDate: -1}}
         ]);
+    }
+
+    static search(searchTerm){
+        return new Promise(async (resolve, reject) => {
+            if(typeof(searchTerm) == "string"){
+                let posts = await Post.postQuery([
+                    {$match: {$text: {$search: searchTerm}}}
+                ], undefined, [{$sort: {score: {$meta: "textScore"}}}]);
+                resolve(posts);
+            }else{
+                reject();
+            }
+        });
     }
 }

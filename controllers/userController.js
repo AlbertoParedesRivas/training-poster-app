@@ -40,9 +40,10 @@ export function register(request, response) {
     });
 }
 
-export function home(request, response) {
+export async function home(request, response) {
     if(request.session.user) {
-        response.render("home-dashboard");
+        let posts = await Post.getFeed(request.session.user._id);
+        response.render("home-dashboard", {posts: posts});
     }else{
         response.render("home-guest", {regErrors: request.flash("regErrors")});
     }
@@ -72,11 +73,13 @@ export function profilePostScreen(request, response) {
     // Getting post from user
     Post.findByAuthorId(request.profileUser._id).then(function (posts) {
         response.render("profile", {
+            currentPage: "posts",
             posts: posts,
             profileUsername: request.profileUser.username,
             profileAvatar: request.profileUser.avatar,
             isFollowing: request.isFollowing,
-            isVisitorsProfile: request.isVisitorsProfile
+            isVisitorsProfile: request.isVisitorsProfile,
+            counts: {postCount: request.postCount,followerCount: request.followerCount,followingCount: request.followingCount}
         });
     }).catch(function () {
         response.render("404");
@@ -92,6 +95,14 @@ export async function sharedProfileData(request, response, next) {
     }
     request.isVisitorsProfile = isVisitorProfile;
     request.isFollowing = isFollowing;
+    // Retrieve post follower and following count
+    let postCountPromise =  Post.countPostByAuthor(request.profileUser._id);
+    let followerCountPromise =  Follow.countFollowersById(request.profileUser._id);
+    let followingCountPromise =  Follow.countFollowingById(request.profileUser._id);
+    let [postCount, followerCount, followingCount] = await Promise.all([postCountPromise, followerCountPromise, followingCountPromise]);
+    request.postCount = postCount;
+    request.followerCount = followerCount;
+    request.followingCount = followingCount;
     next();
 }
 
@@ -99,11 +110,30 @@ export async function profileFollowersScreen(request, response) {
     try {
         let followers = await Follow.getFollowersById(request.profileUser._id);
         response.render("profile-followers", {
+            currentPage: "followers",
             followers: followers,
             profileUsername: request.profileUser.username,
             profileAvatar: request.profileUser.avatar,
             isFollowing: request.isFollowing,
-            isVisitorsProfile: request.isVisitorsProfile
+            isVisitorsProfile: request.isVisitorsProfile,
+            counts: {postCount: request.postCount,followerCount: request.followerCount,followingCount: request.followingCount}
+        });
+    } catch (error) {
+        response.render("404");
+    }
+}
+
+export async function profileFollowingScreen(request, response) {
+    try {
+        let following = await Follow.getFollowingById(request.profileUser._id);
+        response.render("profile-following", {
+            currentPage: "following",
+            following: following,
+            profileUsername: request.profileUser.username,
+            profileAvatar: request.profileUser.avatar,
+            isFollowing: request.isFollowing,
+            isVisitorsProfile: request.isVisitorsProfile,
+            counts: {postCount: request.postCount,followerCount: request.followerCount,followingCount: request.followingCount}
         });
     } catch (error) {
         response.render("404");

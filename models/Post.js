@@ -160,4 +160,22 @@ export class Post{
             }
         });
     }
+
+    static countPostByAuthor(id){
+        return new Promise(async (resolve, request) => {
+            let postCount = await dbModule.getDb().collection("posts").countDocuments({author: id});
+            resolve(postCount);
+        });
+    }
+
+    static async getFeed(id){
+        let followedUsers = await dbModule.getDb().collection("follows").find({authorId: new ObjectId(id)}).toArray();
+        followedUsers = followedUsers.map(function (followedDoc) {
+            return followedDoc.followedId;
+        });
+        return Post.postQuery([
+            {$match: {author: {$in: followedUsers}}},
+            {$sort: {createdDate: -1}}
+        ]);
+    }
 }

@@ -98,4 +98,42 @@ export class Follow{
             }
         });
     }
+
+    static async getFollowingById(id){
+        return new Promise(async (resolve, reject) => {
+            try {
+                let following = await dbModule.getDb().collection("follows").aggregate([
+                    {$match: {authorId: id}},
+                    {$lookup: {from: "users", localField: "followedId", foreignField: "_id", as: "userDoc"}},
+                    {$project: {
+                        username: {$arrayElemAt: ["$userDoc.username", 0]},
+                        email: {$arrayElemAt: ["$userDoc.email", 0]},
+                    }}
+                ]).toArray();
+                following = following.map(function (follower) {
+                    // Create a user
+                    let user = new User(follower, true);
+                    return {username: follower.username, avatar: user.avatar};
+                });
+                resolve(following);
+            } catch (error) {
+                reject();
+            }
+        });
+    }
+
+    static countFollowersById(id){
+        return new Promise(async (resolve, reject) => {
+            let followersCount = await dbModule.getDb().collection("follows").countDocuments({followedId: id});
+            resolve(followersCount);
+        });
+    }
+
+    static countFollowingById(id){
+        return new Promise(async (resolve, reject) => {
+            let followingCount = await dbModule.getDb().collection("follows").countDocuments({authorId: id});
+            resolve(followingCount);
+        });
+    }
+
 }

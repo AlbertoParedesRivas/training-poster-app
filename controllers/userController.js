@@ -94,3 +94,18 @@ export async function sharedProfileData(request, response, next) {
     request.isFollowing = isFollowing;
     next();
 }
+
+export async function profileFollowersScreen(request, response) {
+    try {
+        let followers = await Follow.getFollowersById(request.profileUser._id);
+        response.render("profile-followers", {
+            followers: followers,
+            profileUsername: request.profileUser.username,
+            profileAvatar: request.profileUser.avatar,
+            isFollowing: request.isFollowing,
+            isVisitorsProfile: request.isVisitorsProfile
+        });
+    } catch (error) {
+        response.render("404");
+    }
+}

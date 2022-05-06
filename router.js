@@ -22,6 +22,8 @@ router.post("/search",userController.mustBeLoggedIn, postController.search);
 
 // Profile related routes
 router.get("/profile/:username", userController.ifUserExists, userController.sharedProfileData, userController.profilePostScreen);
+router.get("/profile/:username/followers", userController.ifUserExists, userController.sharedProfileData, userController.profileFollowersScreen);
+// router.get("/profile/:username/following", userController.ifUserExists, userController.sharedProfileData, userController.profilePostScreen);
 
 // Follow related routes
 router.post("/addFollow/:username", userController.mustBeLoggedIn, followController.addFollow);

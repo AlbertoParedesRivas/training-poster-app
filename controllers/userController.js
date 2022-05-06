@@ -1,5 +1,6 @@
 import { User } from "../models/User.js";
 import { Post } from "../models/Post.js";
+import { Follow } from "../models/Follow.js";
 
 export function login(request, response) {
     let user = new User(request.body);
@@ -73,11 +74,23 @@ export function profilePostScreen(request, response) {
         response.render("profile", {
             posts: posts,
             profileUsername: request.profileUser.username,
-            profileAvatar: request.profileUser.avatar
+            profileAvatar: request.profileUser.avatar,
+            isFollowing: request.isFollowing,
+            isVisitorsProfile: request.isVisitorsProfile
         });
     }).catch(function () {
         response.render("404");
     });
+}
 
-        
+export async function sharedProfileData(request, response, next) {
+    let isFollowing = false;
+    let isVisitorProfile = false;
+    if (request.session.user) {
+        isVisitorProfile = request.profileUser._id.equals(request.session.user._id);
+        isFollowing = await Follow.isVisitorFollowing(request.profileUser._id, request.visitorId);
+    }
+    request.isVisitorsProfile = isVisitorProfile;
+    request.isFollowing = isFollowing;
+    next();
 }

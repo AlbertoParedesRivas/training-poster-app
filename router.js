@@ -1,6 +1,7 @@
 import express from "express";
 import * as userController from "./controllers/userController.js";
 import * as postController from "./controllers/postController.js";
+import * as followController from "./controllers/followController.js";
 
 export const router = express.Router();
 
@@ -20,4 +21,8 @@ router.post("/post/:id/delete",userController.mustBeLoggedIn, postController.del
 router.post("/search",userController.mustBeLoggedIn, postController.search);
 
 // Profile related routes
-router.get("/profile/:username", userController.ifUserExists, userController.profilePostScreen);
+router.get("/profile/:username", userController.ifUserExists, userController.sharedProfileData, userController.profilePostScreen);
+
+// Follow related routes
+router.post("/addFollow/:username", userController.mustBeLoggedIn, followController.addFollow);
+router.post("/removeFollow/:username", userController.mustBeLoggedIn, followController.removeFollow);

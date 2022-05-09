@@ -6,6 +6,8 @@ import sanitizeHtml from "sanitize-html";
 import { dbModule } from "./mongo.js";
 import { router } from "./router.js";
 import { marked } from "marked";
+import { Server } from "socket.io";
+import * as http from "http";
 
 export const app = express();
 
@@ -49,6 +51,23 @@ async function start() {
     });
     // Setting up router
     app.use("/", router);
-    app.listen(process.env.PORT);
+    // Setting up socket.io
+    const server = http.createServer(app);
+    const io = new Server(server);
+
+    io.use(function (socket, next) {
+        sessionOptions(socket.request, socket.request.res, next);
+    });
+
+    io.on("connection", function (socket) {
+        if (socket.request.session.user) {
+            let user = socket.request.session.user;
+            socket.emit("welcome", {username: user.username, avatar: user.avatar});
+            socket.on("chatMessageFromBrowser", function (data) {
+                socket.broadcast.emit("chatMessageFromServer", {message: sanitizeHtml(data.message, {allowedTags: [], allowedAttributes: {}}), username: user.username, avatar: user.avatar});
+            })
+        }
+    });
+    server.listen(process.env.PORT);
 }
 start();

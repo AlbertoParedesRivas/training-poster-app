@@ -73,6 +73,7 @@ export function profilePostScreen(request, response) {
     // Getting post from user
     Post.findByAuthorId(request.profileUser._id).then(function (posts) {
         response.render("profile", {
+            title: `Profile for ${request.profileUser.username}`,
             currentPage: "posts",
             posts: posts,
             profileUsername: request.profileUser.username,

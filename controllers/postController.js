@@ -19,7 +19,7 @@ export function create(request, response) {
 export async function viewSingle(request, response) {
     try {
         let post = await Post.findPostById(request.params.id, request.visitorId);
-        response.render("single-post-screen", {post: post});
+        response.render("single-post-screen", {post: post, title: post.title});
     } catch (error) {
         response.render("404");
     }

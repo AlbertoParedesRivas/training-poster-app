@@ -140,3 +140,16 @@ export async function profileFollowingScreen(request, response) {
         response.render("404");
     }
 }
+
+export async function doesUsernameExists(request, response){
+    User.findByUsername(request.body.username).then(function() {
+        response.json(true);
+    }).catch(function() {
+        response.json(false);
+    });
+}
+
+export async function doesEmailExists(request, response){
+    let emailExists = await User.doesEmailExists(request.body.email);
+    response.json(emailExists);
+}

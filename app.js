@@ -8,6 +8,7 @@ import { router } from "./router.js";
 import { marked } from "marked";
 import { Server } from "socket.io";
 import * as http from "http";
+import csrf from "csurf";
 
 export const app = express();
 
@@ -49,8 +50,23 @@ async function start() {
         response.locals.success = request.flash("success");
         next();
     });
+    // Setting up csurf
+    app.use(csrf());
+    app.use(function (request, response, next) {
+        response.locals.csrfToken = request.csrfToken();
+        next();
+    });
     // Setting up router
     app.use("/", router);
+
+    app.use(function (err, request, response, next) {
+        if (err.code == "EBADCSRFTOKEN") {
+            request.flash("errors", "Cross-site request forgery detected");
+            request.session.save(() => response.redirect("/"));
+        } else {
+            response.render("404");
+        }
+    })
     // Setting up socket.io
     const server = http.createServer(app);
     const io = new Server(server);

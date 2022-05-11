@@ -1,6 +1,7 @@
 import { User } from "../models/User.js";
 import { Post } from "../models/Post.js";
 import { Follow } from "../models/Follow.js";
+import jwt from "jsonwebtoken";
 
 export function login(request, response) {
     let user = new User(request.body);
@@ -152,4 +153,32 @@ export async function doesUsernameExists(request, response){
 export async function doesEmailExists(request, response){
     let emailExists = await User.doesEmailExists(request.body.email);
     response.json(emailExists);
+}
+
+export function apiLogin(request, response){
+    let user = new User(request.body);
+    user.login().then(function () {
+        response.json(jwt.sign({_id: user.data._id}, process.env.JWTSECRET, {expiresIn: "30m"}));
+    }).catch(function (e) {
+        response.json("XC");
+    });
+}
+
+export function apiMustBeLoggedIn(request, response, next) {
+    try {
+        request.apiUser = jwt.verify(request.body.token, process.env.JWTSECRET);
+        next();
+    } catch (error) {
+        response.json("You must provide a valid token");
+    }
+}
+
+export async function apiGetPostsByUsername(request, response) {
+    try {
+        let authorDoc = await User.findByUsername(request.params.username);
+        let posts = await Post.findByAuthorId(authorDoc._id);
+        response.json(posts);
+    } catch (error) {
+        response.json("Invalid user requested");
+    }
 }

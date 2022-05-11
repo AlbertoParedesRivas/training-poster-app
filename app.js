@@ -9,8 +9,13 @@ import { marked } from "marked";
 import { Server } from "socket.io";
 import * as http from "http";
 import csrf from "csurf";
+import { apiRouter } from "./router-api.js";
 
 export const app = express();
+// Configuring request object to include user submited data
+app.use(express.urlencoded({extended: false}));
+app.use(express.json());
+app.use("/api", apiRouter);
 
 async function start() {
     await dbModule.connect();
@@ -24,9 +29,6 @@ async function start() {
             httpOnly: true
         }
     });
-    // Configuring request object to include user submited data
-    app.use(express.urlencoded({extended: false}));
-    app.use(express.json());
     
     app.use(flash());
     app.use(sessionOptions);

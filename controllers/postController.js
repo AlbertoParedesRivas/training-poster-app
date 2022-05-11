@@ -80,3 +80,20 @@ export function search(request, response) {
         response.json([]);
     });
 }
+
+export function apiCreatePost(request, response) {
+    let post = new Post(request.body, request.apiUser._id);
+    post.create().then(function (insertedId) {
+        response.json("Post created.");
+    }).catch(function (errors) {
+        response.json(errors);
+    });
+}
+
+export function apiDeletePost(request, response) {
+    Post.delete(request.params.id, request.apiUser._id).then(() =>{
+        response.json("Post deleted");
+    }).catch(() => {
+        response.json("You dont have permission to perform that action");
+    });
+}

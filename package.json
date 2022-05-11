@@ -4,6 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "start": "node app.js",
     "babel": "babel --presets es2015 js/main.js -o build/main.bundle.js",
     "watch": "nodemon app --ignore frontend-js --ignore public/ & webpack --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
